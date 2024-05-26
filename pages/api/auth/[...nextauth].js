@@ -19,28 +19,30 @@ export default NextAuth({
     CredentialsProvider({
       name: "Credentials",
       async authorize(credentials, req) {
-        connectMongo().catch((error) => {
-          error: "Connection Failed !";
+        await connectMongo().catch((error) => {
+          throw new Error("Connection Failed!");
         });
 
-        //Check User existance
+        // Check user existence
         const result = await Users.findOne({ email: credentials.email });
         if (!result) {
-          throw new Error("No User Found with Email Please Sign Up !");
+          throw new Error("No User Found with Email, Please Sign Up!");
         }
 
-        //Compare()
+        // Compare password
         const checkPassword = await compare(
           credentials.password,
           result.password
         );
 
-        //incorrect password
+        // Incorrect password
         if (!checkPassword || result.email !== credentials.email) {
           throw new Error("Username or Password doesn't match");
         }
+
         return result;
       },
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET, // Add this line to use the secret from the environment variable
 });
